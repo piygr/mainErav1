@@ -28,7 +28,7 @@ def get_loader(**kwargs):
 
     dataset = datasets.CIFAR10('../data', train=True, download=True, transform=transforms.ToTensor())
     mean, std = get_dataset_mean_variance(dataset)
-    train_data = CustomCIFAR10Dataset(train=True, transform=get_train_transforms(mean, std, 0.3))
+    train_data = CustomCIFAR10Dataset(train=True, transform=get_train_transforms(mean, std, 0.5))
     test_data = CustomCIFAR10Dataset(train=False, transform=get_test_transforms(mean=mean, std=std))
 
     return torch.utils.data.DataLoader(train_data, **kwargs), torch.utils.data.DataLoader(test_data, **kwargs)

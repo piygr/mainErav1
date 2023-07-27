@@ -13,11 +13,11 @@ def get_train_transforms(mean, std, p):
         [
             A.Normalize(mean, std),
             A.CoarseDropout(max_holes = 1,
-                            max_height=8,
-                            max_width=8,
+                            max_height=16,
+                            max_width=16,
                             min_holes = 1,
-                            min_height=8,
-                            min_width=8,
+                            min_height=16,
+                            min_width=16,
                             fill_value=mean,
                             mask_fill_value = None,
                             p=p

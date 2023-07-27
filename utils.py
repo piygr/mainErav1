@@ -3,6 +3,7 @@ from tqdm.autonotebook import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 from dataset import get_data_label_name
+import os
 
 # CUDA?
 cuda = torch.cuda.is_available()
@@ -14,8 +15,8 @@ def plot_dataset_sample(data_loader, mean, std):
     STD = torch.tensor(std)
 
     # fig = plt.figure()
-    for i in range(3):
-        plt.subplot(1, 3, i + 1)
+    for i in range(5):
+        plt.subplot(1, 5, i + 1)
         #plt.tight_layout()
         x = batch_data[i] * STD[:, None, None] + MEAN[:, None, None]
 
