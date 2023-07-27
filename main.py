@@ -5,16 +5,8 @@ from models.resnet import ResNet18, nn
 from torchsummary import summary
 from torch_lr_finder import LRFinder
 
-def find_opt_lr(model, device, train_loader):
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)
-    lr_finder = LRFinder(model, optimizer, criterion, device=device)
-    lr_finder.range_test(train_loader, end_lr=100, num_iter=100)
-    lr_finder.plot() # to inspect the loss-learning rate graph
-    lr_finder.reset() # to reset the model and optimizer to their initial state
 
-
-def init(show_sample=True, show_model_summary=True, lr_finder=False, train_model=False):
+def init(show_sample=True, show_model_summary=True, find_lr=False, train_model=False):
     device = torch.device("cuda" if cuda else "cpu")
     model = ResNet18().to(device)
 
@@ -28,8 +20,13 @@ def init(show_sample=True, show_model_summary=True, lr_finder=False, train_model
     if show_model_summary:
         summary(model, input_size=(3, 32, 32))
 
-    if lr_finder:
-        find_opt_lr(model, device, train_loader)
+    if find_lr:
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)
+        lr_finder = LRFinder(model, optimizer, criterion, device=device)
+        lr_finder.range_test(train_loader, end_lr=100, num_iter=100)
+        lr_finder.plot()  # to inspect the loss-learning rate graph
+        lr_finder.reset()  # to reset the model and optimizer to their initial state
     elif train_model:
         optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=0.01)
         criterion = nn.CrossEntropyLoss()
