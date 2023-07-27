@@ -16,7 +16,7 @@ def plot_dataset_sample(data_loader, mean, std):
     # fig = plt.figure()
     for i in range(3):
         plt.subplot(1, 3, i + 1)
-        plt.tight_layout()
+        #plt.tight_layout()
         x = batch_data[i] * STD[:, None, None] + MEAN[:, None, None]
 
         image = np.array(255 * x, np.int16).transpose(1, 2, 0)
@@ -32,7 +32,7 @@ def plot_incorrect_preds(mean, std, count=20):
 
     for i in range(count):
         plt.subplot(int(count/5), 5, i + 1)
-        plt.tight_layout()
+        #plt.tight_layout()
         x = test_incorrect_pred['images'][i] * STD[:, None, None] + MEAN[:, None, None]
 
         image = np.array(255 * x, np.int16).transpose(1, 2, 0)

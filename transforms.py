@@ -12,7 +12,6 @@ def get_train_transforms(mean, std, p):
     a = A.Compose(
         [
             A.Normalize(mean, std),
-            A.HorizontalFlip(p=p),
             A.CoarseDropout(max_holes = 1,
                             max_height=8,
                             max_width=8,
