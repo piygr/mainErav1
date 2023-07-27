@@ -1,5 +1,5 @@
 import torch.optim as optim
-from utils import torch, cuda, plot_dataset_sample, test, train, plot_model_performance, test_acc
+from utils import torch, cuda, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam
 from dataset import get_loader, dataset_mean, dataset_std
 from models.resnet import ResNet18, nn
 from torchsummary import summary
@@ -31,15 +31,14 @@ def init(show_sample=True, show_model_summary=True, find_lr=False):
         lr_finder.reset()  # to reset the model and optimizer to their initial state
 
 
-def train_model():
-    num_epochs = 20
+def train_model(num_epochs=20):
     steps_per_epoch = len(train_loader)
     # scheduler = optim.lr_scheduler.CyclicLR(optimizer, base_lr=3.20E-06, max_lr=3.20E-04, step_size_up=5*steps_per_epoch, step_size_down=19*steps_per_epoch, cycle_momentum=False, verbose=False)
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer,
                                               max_lr=1.83E-04,
                                               epochs=num_epochs,
                                               steps_per_epoch=steps_per_epoch,
-                                              pct_start=5 / num_epochs,
+                                              pct_start=0.3,
                                               div_factor=100,
                                               final_div_factor=100,
                                               three_phase=False,
@@ -51,7 +50,8 @@ def train_model():
         train(model, device, train_loader, optimizer, criterion, scheduler)
         test(model, device, test_loader, criterion)
 
-    plot_model_performance()
+    plot_grad_cam(model, dataset_mean, dataset_std, count=10, correct=True)
+    #plot_model_performance()
 
 
 

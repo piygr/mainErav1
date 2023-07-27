@@ -3,7 +3,9 @@ from tqdm.autonotebook import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 from dataset import get_data_label_name
-import os
+from pytorch_grad_cam import GradCAM, HiResCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+from pytorch_grad_cam.utils.image import show_cam_on_image
 
 # CUDA?
 cuda = torch.cuda.is_available()
@@ -46,6 +48,46 @@ def plot_incorrect_preds(mean, std, count=20):
                 get_data_label_name( test_incorrect_pred['predicted_vals'][i].item() )
         plt.title(title)
 
+
+def plot_grad_cam(model, mean, std, count=20, correct=True):
+    target_layers = [model.layer4[-1]]
+    cam = GradCAM(model=model, target_layers=target_layers, use_cuda=torch.cuda.is_available())
+
+    MEAN = torch.tensor(mean)
+    STD = torch.tensor(std)
+
+    for i in range(count):
+        #plt.subplot(int(count / 5), 5, i + 1)
+        # plt.tight_layout()
+        if correct:
+            pred_dict = test_correct_pred
+        else:
+            pred_dict = test_incorrect_pred
+
+        targets = [ClassifierOutputTarget( pred_dict['ground_truths'][i].item() )]
+
+        grayscale_cam = cam(input_tensor=pred_dict['images'][i], targets=targets)
+
+        # In this example grayscale_cam has only one image in the batch:
+        grayscale_cam = grayscale_cam[0, :]
+
+        x = pred_dict['images'][i] * STD[:, None, None] + MEAN[:, None, None]
+
+        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
+
+        visualization = show_cam_on_image(image, grayscale_cam, use_rgb=True)
+
+        #plt.imshow(image)
+
+        #plt.xticks([])
+        #plt.yticks([])
+
+        #title = get_data_label_name(pred_dict['ground_truths'][i].item()) + ' / ' + \
+        #        get_data_label_name(pred_dict['predicted_vals'][i].item())
+        #plt.title(title)
+
+
+
 # Data to plot accuracy and loss graphs
 train_losses = []
 test_losses = []
@@ -53,6 +95,7 @@ train_acc = []
 test_acc = []
 
 test_incorrect_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
+test_correct_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
 
 def get_correct_pred_count(pPrediction, pLabels):
     return pPrediction.argmax(dim=1).eq(pLabels).sum().item()
@@ -65,6 +108,10 @@ def add_incorrect_predictions(data, pred, target):
             test_incorrect_pred['images'].append(data[idx])
             test_incorrect_pred['ground_truths'].append(target[idx])
             test_incorrect_pred['predicted_vals'].append(pred.argmax(dim=1)[idx])
+        elif d.item() == 0:
+            test_correct_pred['images'].append(data[idx])
+            test_correct_pred['ground_truths'].append(target[idx])
+            test_correct_pred['predicted_vals'].append(pred.argmax(dim=1)[idx])
 
 
 def train(model, device, train_loader, optimizer, criterion, scheduler):
@@ -108,6 +155,8 @@ def test(model, device, test_loader, criterion):
     correct = 0
 
     test_incorrect_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
+    test_correct_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
+
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(test_loader):
             data, target = data.to(device), target.to(device)
