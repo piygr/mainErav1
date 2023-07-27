@@ -57,8 +57,8 @@ def plot_grad_cam(model, mean, std, count=20, correct=True):
     STD = torch.tensor(std)
 
     for i in range(count):
-        #plt.subplot(int(count / 5), 5, i + 1)
-        # plt.tight_layout()
+        plt.subplot(int(count / 3), 3, i + 1)
+        plt.tight_layout()
         if correct:
             pred_dict = test_correct_pred
         else:
@@ -66,25 +66,25 @@ def plot_grad_cam(model, mean, std, count=20, correct=True):
 
         targets = [ClassifierOutputTarget( pred_dict['ground_truths'][i].item() )]
 
-        grayscale_cam = cam(input_tensor=pred_dict['images'][i], targets=targets)
+        grayscale_cam = cam(input_tensor=pred_dict['images'][i][None, :], targets=targets)
 
-        # In this example grayscale_cam has only one image in the batch:
-        grayscale_cam = grayscale_cam[0, :]
+        grayscale_cam = grayscale_cam[0, :].transpose(1, 2, 0)
 
         x = pred_dict['images'][i] * STD[:, None, None] + MEAN[:, None, None]
 
         image = np.array(255 * x, np.int16).transpose(1, 2, 0)
+        img_tensor = np.array(x, np.int16).transpose(1, 2, 0)
 
-        visualization = show_cam_on_image(image, grayscale_cam, use_rgb=True)
+        visualization = show_cam_on_image(img_tensor, grayscale_cam, use_rgb=True)
 
-        #plt.imshow(image)
+        plt.imshow(image)
+        plt.imshow(visualization, alpha=0.5)
+        plt.xticks([])
+        plt.yticks([])
 
-        #plt.xticks([])
-        #plt.yticks([])
-
-        #title = get_data_label_name(pred_dict['ground_truths'][i].item()) + ' / ' + \
-        #        get_data_label_name(pred_dict['predicted_vals'][i].item())
-        #plt.title(title)
+        title = get_data_label_name(pred_dict['ground_truths'][i].item()) + ' / ' + \
+                get_data_label_name(pred_dict['predicted_vals'][i].item())
+        plt.title(title)
 
 
 
