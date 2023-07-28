@@ -96,7 +96,7 @@ def plot_grad_cam(model, mean, std, count=20, missclassified=True):
         image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
         img_tensor = np.array(x.cpu(), np.float16).transpose(1, 2, 0)
 
-        visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True, image_weight=0.5)
+        visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True, image_weight=0.8)
 
         plt.imshow(image, vmin=0, vmax=255)
         plt.imshow(visualization, alpha=0.6, vmin=0, vmax=255)
