@@ -25,10 +25,10 @@ def plot_dataset_sample(data_loader, mean, std):
         x = batch_data[i] * STD[:, None, None] + MEAN[:, None, None]
 
         image = np.array(255 * x, np.int16).transpose(1, 2, 0)
-        plt.imshow(image)
+        plt.imshow(image, vmin=0, vmax=255)
         plt.xticks([])
         plt.yticks([])
-        plt.title(get_data_label_name(batch_label[i].item()))
+        plt.title(get_data_label_name(batch_label[i].item()), fontsize=8)
 
 
 def plot_missclassified_preds(mean, std, count=20):
@@ -41,7 +41,7 @@ def plot_missclassified_preds(mean, std, count=20):
         x = test_incorrect_pred['images'][i] * STD[:, None, None].to(device) + MEAN[:, None, None].to(device)
 
         image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
-        plt.imshow(image)
+        plt.imshow(image, vmin=0, vmax=255)
 
         plt.xticks([])
         plt.yticks([])
@@ -94,12 +94,12 @@ def plot_grad_cam(model, mean, std, count=20, missclassified=True):
         x = pred_dict['images'][i] * STD[:, None, None].to(device) + MEAN[:, None, None].to(device)
 
         image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
-        img_tensor = np.array(x.cpu(), np.int16).transpose(1, 2, 0)
+        img_tensor = np.array(x.cpu(), np.float16).transpose(1, 2, 0)
 
         visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True, image_weight=0.5)
 
         plt.imshow(image, vmin=0, vmax=255)
-        plt.imshow(visualization, alpha=0.6)
+        plt.imshow(visualization, alpha=0.6, vmin=0, vmax=255)
         plt.xticks([])
         plt.yticks([])
 
