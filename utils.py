@@ -6,10 +6,12 @@ from dataset import get_data_label_name
 from pytorch_grad_cam import GradCAM, HiResCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from pytorch_grad_cam.utils.image import show_cam_on_image
+import os
 
 # CUDA?
 cuda = torch.cuda.is_available()
 print("CUDA Available?", cuda)
+device = torch.device("cuda" if cuda else "cpu")
 
 def plot_dataset_sample(data_loader, mean, std):
     batch_data, batch_label = next(iter(data_loader))
@@ -34,59 +36,76 @@ def plot_incorrect_preds(mean, std, count=20):
     STD = torch.tensor(std)
 
     for i in range(count):
-        plt.subplot(int(count/5), 5, i + 1)
-        #plt.tight_layout()
-        x = test_incorrect_pred['images'][i] * STD[:, None, None] + MEAN[:, None, None]
+        plt.subplot(int(count / 5), 5, i + 1)
+        # plt.tight_layout()
+        x = test_incorrect_pred['images'][i] * STD[:, None, None].to(device) + MEAN[:, None, None].to(device)
 
-        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
+        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
         plt.imshow(image)
 
         plt.xticks([])
         plt.yticks([])
 
-        title = get_data_label_name( test_incorrect_pred['ground_truths'][i].item() ) + ' / ' + \
-                get_data_label_name( test_incorrect_pred['predicted_vals'][i].item() )
-        plt.title(title)
+        title = get_data_label_name(test_incorrect_pred['ground_truths'][i].item()) + ' / ' + \
+                get_data_label_name(test_incorrect_pred['predicted_vals'][i].item())
+        plt.title(title, fontsize=8)
+
+
+# code to move any list dict of tensor to the cuda/cpu
+def move_to(obj, device):
+    if torch.is_tensor(obj):
+        return obj.to(device)
+    elif isinstance(obj, dict):
+        res = {}
+        for k, v in obj.items():
+            res[k] = move_to(v, device)
+        return res
+    elif isinstance(obj, list):
+        res = []
+        for v in obj:
+            res.append(move_to(v, device))
+        return res
+    else:
+        raise TypeError("Invalid type for move_to")
+
 
 
 def plot_grad_cam(model, mean, std, count=20, correct=True):
     target_layers = [model.layer4[-1]]
-    cam = GradCAM(model=model, target_layers=target_layers, use_cuda=torch.cuda.is_available())
+    cam = GradCAM(model=model, target_layers=target_layers, use_cuda=0)
 
     MEAN = torch.tensor(mean)
     STD = torch.tensor(std)
-
+    fig = plt.figure()
     for i in range(count):
-        plt.subplot(int(count / 3), 3, i + 1)
+        plt.subplot(int(count / 5), 5, i + 1)
         plt.tight_layout()
         if correct:
             pred_dict = test_correct_pred
         else:
             pred_dict = test_incorrect_pred
 
-        targets = [ClassifierOutputTarget( pred_dict['ground_truths'][i].item() )]
+        targets = [ClassifierOutputTarget(pred_dict['ground_truths'][i].item())]
 
         grayscale_cam = cam(input_tensor=pred_dict['images'][i][None, :], targets=targets)
 
-        grayscale_cam = grayscale_cam[0, :].transpose(1, 2, 0)
+        # grayscale_cam = grayscale_cam[0, :].transpose(1, 2, 0)
 
-        x = pred_dict['images'][i] * STD[:, None, None] + MEAN[:, None, None]
+        x = pred_dict['images'][i] * STD[:, None, None].to(device) + MEAN[:, None, None].to(device)
 
-        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
-        img_tensor = np.array(x, np.int16).transpose(1, 2, 0)
+        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
+        img_tensor = np.array(x.cpu(), np.int16).transpose(1, 2, 0)
 
-        visualization = show_cam_on_image(img_tensor, grayscale_cam, use_rgb=True)
+        visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True)
 
-        plt.imshow(image)
+        plt.imshow(image, vmin=0, vmax=255)
         plt.imshow(visualization, alpha=0.5)
         plt.xticks([])
         plt.yticks([])
 
         title = get_data_label_name(pred_dict['ground_truths'][i].item()) + ' / ' + \
                 get_data_label_name(pred_dict['predicted_vals'][i].item())
-        plt.title(title)
-
-
+        plt.title(title, fontsize=8)
 
 # Data to plot accuracy and loss graphs
 train_losses = []
@@ -101,7 +120,7 @@ def get_correct_pred_count(pPrediction, pLabels):
     return pPrediction.argmax(dim=1).eq(pLabels).sum().item()
 
 
-def add_incorrect_predictions(data, pred, target):
+def add_predictions(data, pred, target):
     diff_preds = pred.argmax(dim=1) - target
     for idx, d in enumerate(diff_preds):
         if d.item() != 0:
@@ -167,7 +186,7 @@ def test(model, device, test_loader, criterion):
 
             correct += get_correct_pred_count(output, target)
 
-            add_incorrect_predictions(data, output, target)
+            add_predictions(data, output, target)
 
     test_loss /= len(test_loader.dataset)  # mean of the test_loss post all the batches
     test_acc.append(100. * correct / len(test_loader.dataset))
@@ -188,3 +207,42 @@ def plot_model_performance():
     axs[0, 1].set_title("Test Loss")
     axs[1, 1].plot(test_acc)
     axs[1, 1].set_title("Test Accuracy")
+
+
+def create_model_checkpoint(model, optimizer, scheduler, epoch):
+    print('Saving..')
+    state = {
+        'model': model.state_dict(),
+        'epoch': epoch,
+        'optimizer': optimizer.state_dict(),
+        'scheduler': scheduler.state_dict(),
+        'test_acc': test_acc,
+        'test_losses': test_losses,
+        'train_losses': train_losses[-1:],
+        'train_acc': train_acc[-1:],
+        'test_incorrect_pred': dict(images=test_incorrect_pred['images'][-20:],
+                                    ground_truths=test_incorrect_pred['ground_truths'][-20:],
+                                    predicted_vals=test_incorrect_pred['predicted_vals'][-20:]),
+        'test_correct_pred': dict(images=test_correct_pred['images'][-20:],
+                                    ground_truths=test_correct_pred['ground_truths'][-20:],
+                                    predicted_vals=test_correct_pred['predicted_vals'][-20:])
+    }
+
+    if not os.path.isdir('checkpoint'):
+        os.mkdir('checkpoint')
+
+    torch.save(state, './checkpoint/ckpt.pth')
+
+
+def load_model_from_checkpoint():
+    print('==> Resuming from checkpoint..')
+    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    checkpoint = torch.load('./checkpoint/ckpt.pth')
+    train_losses = checkpoint['train_losses']
+    test_losses = checkpoint['test_losses']
+    train_acc = checkpoint['train_acc']
+    test_acc = checkpoint['test_acc']
+    test_incorrect_pred = checkpoint['test_incorrect_pred']
+    test_correct_pred = checkpoint['test_correct_pred']
+
+    return checkpoint

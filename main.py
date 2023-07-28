@@ -1,11 +1,11 @@
 import torch.optim as optim
-from utils import torch, cuda, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam
+from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint
 from dataset import get_loader, dataset_mean, dataset_std
 from models.resnet import ResNet18, nn
 from torchsummary import summary
 from torch_lr_finder import LRFinder
 
-device = torch.device("cuda" if cuda else "cpu")
+
 model = ResNet18().to(device)
 
 batch_size = 512
@@ -31,7 +31,9 @@ def init(show_sample=True, show_model_summary=True, find_lr=False):
         lr_finder.reset()  # to reset the model and optimizer to their initial state
 
 
-def train_model(num_epochs=20):
+
+def train_model(start_epoch=1, resume=False, num_epochs=20):
+
     steps_per_epoch = len(train_loader)
     # scheduler = optim.lr_scheduler.CyclicLR(optimizer, base_lr=3.20E-06, max_lr=3.20E-04, step_size_up=5*steps_per_epoch, step_size_down=19*steps_per_epoch, cycle_momentum=False, verbose=False)
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer,
@@ -44,13 +46,22 @@ def train_model(num_epochs=20):
                                               three_phase=False,
                                               verbose=False
                                               )
+    if resume:
+        checkpoint = load_model_from_checkpoint()
+        model.load_state_dict(checkpoint['model']).to(device)
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        scheduler.load_state_dict(checkpoint['scheduler'])
+        start_epoch = checkpoint['epoch']
 
-    for epoch in range(1, num_epochs + 1):
+
+    for epoch in range(start_epoch, num_epochs + 1):
         print(f'Epoch {epoch} LR {scheduler.get_last_lr()}')
         train(model, device, train_loader, optimizer, criterion, scheduler)
         test(model, device, test_loader, criterion)
 
-    plot_grad_cam(model, dataset_mean, dataset_std, count=10, correct=True)
+
+
+    #plot_grad_cam(model, dataset_mean, dataset_std, count=10, correct=True)
     #plot_model_performance()
 
 
