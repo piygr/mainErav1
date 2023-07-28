@@ -31,7 +31,7 @@ def plot_dataset_sample(data_loader, mean, std):
         plt.title(get_data_label_name(batch_label[i].item()))
 
 
-def plot_incorrect_preds(mean, std, count=20):
+def plot_missclassified_preds(mean, std, count=20):
     MEAN = torch.tensor(mean)
     STD = torch.tensor(std)
 
@@ -70,7 +70,7 @@ def move_to(obj, device):
 
 
 
-def plot_grad_cam(model, mean, std, count=20, correct=True):
+def plot_grad_cam(model, mean, std, count=20, missclassified=True):
     target_layers = [model.layer4[-1]]
     cam = GradCAM(model=model, target_layers=target_layers, use_cuda=0)
 
@@ -80,7 +80,7 @@ def plot_grad_cam(model, mean, std, count=20, correct=True):
     for i in range(count):
         plt.subplot(int(count / 5), 5, i + 1)
         plt.tight_layout()
-        if correct:
+        if not missclassified:
             pred_dict = test_correct_pred
         else:
             pred_dict = test_incorrect_pred

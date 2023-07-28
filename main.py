@@ -61,7 +61,7 @@ def train_model(start_epoch=1, resume=False, num_epochs=20):
 
 
 
-    #plot_grad_cam(model, dataset_mean, dataset_std, count=10, correct=True)
+    #plot_grad_cam(model, dataset_mean, dataset_std, count=10, missclassified=True)
     #plot_model_performance()
 
 
