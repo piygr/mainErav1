@@ -1,5 +1,5 @@
 # Main ERAV1
-Main Repo for all future models
+Main Repo for all the future models
 
 ## [models]
 The folder contains all the models, currently resnet.py  
@@ -52,7 +52,7 @@ Few of the utility functions are -
 In google colab notebook, do git clone of the repo
 
 ```
-!git clone https://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@github.com/piygr/s11erav1.git
+!git clone https://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@github.com/piygr/mainErav1.git
 ```
 
 Happy Modeling :-) 
