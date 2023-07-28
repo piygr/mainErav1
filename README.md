@@ -1,10 +1,9 @@
 # Main ERAV1
 Main Repo for all future models
 
-## models
+## [models]
 The folder contains all the models, currently resnet.py  
 ResNet18 Trainable Parameters count = 11,173,962
-```
 
 ## transforms.py
 The file contains trasforms which are applied to the input dataset as per the assignment requirement. eg.
