@@ -188,14 +188,20 @@ class S10LightningModel(pl.LightningModule):
         return [optimizer], [scheduler]
 
 
-    def on_train_epoch_end(self):
+    '''def on_train_epoch_end(self):
        print('Epoch ', self.current_epoch, ' Train Accuracy', 100*self.acc['train']/self.acc['train_total'], '% [', self.acc['train'], '/', self.acc['train_total'], ']')
        self.acc['train'] = 0
-       self.acc['train_total'] = 0
+       self.acc['train_total'] = 0'''
 
 
     def on_validation_epoch_end(self):
-        print('Epoch ', self.current_epoch, ' Validation Accuracy', 100 * self.acc['val'] / self.acc['val_total'], '% [', self.acc['val'], '/', self.acc['val_total'], ']')
+        print('Epoch ', self.current_epoch)
+        print('Train Accuracy', 100 * self.acc['train'] / self.acc['train_total'], '% [',
+              self.acc['train'], '/', self.acc['train_total'], ']')
+        self.acc['train'] = 0
+        self.acc['train_total'] = 0
+
+        print('Validation Accuracy', 100 * self.acc['val'] / self.acc['val_total'], '% [', self.acc['val'], '/', self.acc['val_total'], ']')
         self.acc['val'] = 0
         self.acc['val_total'] = 0
 
