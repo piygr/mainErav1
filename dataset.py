@@ -104,7 +104,7 @@ class CustomCIFARR10LightningDataModule(pl.LightningDataModule):
 
         CustomCIFAR10Dataset('../data', train=True, download=True)
         CustomCIFAR10Dataset('../data', train=False, download=True)
-        dataset = datasets.CIFAR10('../data', train=True, download=False, transform=transforms.ToTensor())
+        dataset = datasets.CIFAR10('../data', train=True, download=True, transform=transforms.ToTensor())
         self.mean, self.std = get_dataset_mean_variance(dataset)
 
     def get_train_transforms(self, p):
