@@ -26,7 +26,6 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
         model = network
 
     if isinstance(model, pl.LightningModule):
-        global data_module
         data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
 
         if show_sample:
