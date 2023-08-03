@@ -3,7 +3,7 @@ import torch.optim as optim
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint
-from dataset import get_loader, dataset_mean, dataset_std
+from dataset import get_loader, dataset_mean, dataset_std, CustomCIFARR10LightningDataModule
 from models.resnet import ResNet18, nn
 from torchsummary import summary
 from torch_lr_finder import LRFinder
@@ -27,10 +27,10 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
         batch_size = 512
         kwargs = {'batch_size': batch_size, 'shuffle': True}
-        train_loader, test_loader = get_loader(**kwargs)
-        #data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
-        #data_module.prepare_data()
-
+        #train_loader, test_loader = get_loader(**kwargs)
+        data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
+        data_module.prepare_data()
+        data_module.setup('fit')
         #if show_sample:
         #    plot_dataset_sample(data_module, dataset_mean, dataset_std)
 
@@ -43,7 +43,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
             trainer = pl.Trainer(
                 max_epochs=24
             )
-            trainer.fit(model, train_loader, test_loader)
+            trainer.fit(model, data_module)
 
 
     elif isinstance(model, nn.Module):

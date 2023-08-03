@@ -159,7 +159,7 @@ class S10LightningModel(pl.LightningModule):
             return self.max_lr
 
         lr_finder = LRFinder(self, optimizer, self.criterion)
-        lr_finder.range_test(self.trainer.train_dataloader, end_lr=100, num_iter=100)
+        lr_finder.range_test(self.trainer.datamodule.train_dataloader(), end_lr=100, num_iter=100)
         _, best_lr = lr_finder.plot()  # to inspect the loss-learning rate graph
         lr_finder.reset()
         self.max_lr = best_lr
