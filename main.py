@@ -3,7 +3,7 @@ import torch.optim as optim
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint
-from dataset import get_loader, dataset_mean, dataset_std, CustomCIFARR10LightningDataModule
+from dataset import get_loader, dataset_mean, dataset_std
 from models.resnet import ResNet18, nn
 from torchsummary import summary
 from torch_lr_finder import LRFinder
@@ -11,9 +11,6 @@ from torch_lr_finder import LRFinder
 
 model = ResNet18().to(device)
 
-batch_size = 512
-kwargs = {'batch_size': batch_size, 'shuffle': True, 'num_workers': 2, 'pin_memory': True}
-train_loader, test_loader = get_loader(**kwargs)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)
@@ -27,6 +24,10 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
         model = network
 
     if isinstance(model, pl.LightningModule):
+
+        batch_size = 512
+        kwargs = {'batch_size': batch_size, 'shuffle': True}
+        train_loader, test_loader = get_loader(**kwargs)
         #data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
         #data_module.prepare_data()
 
@@ -46,6 +47,10 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
 
     elif isinstance(model, nn.Module):
+
+        batch_size = 512
+        kwargs = {'batch_size': batch_size, 'shuffle': True, 'num_workers': 2, 'pin_memory': True}
+        train_loader, test_loader = get_loader(**kwargs)
 
         if show_sample:
             plot_dataset_sample(train_loader, dataset_mean, dataset_std)
