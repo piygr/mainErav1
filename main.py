@@ -1,5 +1,6 @@
 import pytorch_lightning as pl
 import torch.optim as optim
+from pytorch_lightning.utilities.model_summary import ModelSummary
 
 from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint
 from dataset import get_loader, dataset_mean, dataset_std, CustomCIFARR10LightningDataModule
@@ -32,14 +33,16 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
         #if show_sample:
         #    plot_dataset_sample(data_module, dataset_mean, dataset_std)
 
-        if show_model_summary:
-            summary(model, input_size=(3, 32, 32))
+        #if show_model_summary:
+        #    ModelSummary(model)
 
         if find_lr:
             model.find_lr()
 
         if start_train:
-            trainer = pl.Trainer()
+            trainer = pl.Trainer(
+                max_epochs=24
+            )
             trainer.fit(model, data_module)
 
 
