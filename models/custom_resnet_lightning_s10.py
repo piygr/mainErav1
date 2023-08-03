@@ -183,7 +183,12 @@ class S10LightningModel(pl.LightningModule):
         return [optimizer], [scheduler]
 
 
-    #def on_train_epoch_end(self):
+    def on_train_epoch_end(self):
+       print('Train Accuracy', 100*self.acc['train']/self.acc['train_total'], '%')
+
+
+    def on_validation_epoch_end(self):
+        print('Validation Accuracy', 100 * self.acc['val'] / self.acc['val_total'], '%')
 
 
     def find_lr(self, optimizer):
