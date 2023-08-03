@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
+from pytorch_grad_cam import GradCAM
 from torch_lr_finder import LRFinder
 from utils import train_losses, test_losses, train_acc, test_acc, test_correct_pred, test_incorrect_pred, \
     get_correct_pred_count, add_predictions
@@ -133,7 +134,7 @@ class S10LightningModel(pl.LightningModule):
 
         if idx < len(layers) and idx >= 0:
             return layers[idx]
-        
+
 
     def training_step(self, train_batch, batch_idx):
         x, target = train_batch
