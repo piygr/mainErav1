@@ -2,7 +2,8 @@ import pytorch_lightning as pl
 import torch.optim as optim
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
-from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint
+from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, \
+    plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint, plot_missclassified_preds
 from dataset import get_loader, dataset_mean, dataset_std, CustomCIFARR10LightningDataModule
 from models.resnet import ResNet18, nn
 from torchsummary import summary
@@ -44,9 +45,11 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
         if start_train:
             trainer = pl.Trainer(
-                max_epochs=24
+                max_epochs=4
             )
             trainer.fit(model, train_dataloader, test_dataloader)
+
+            plot_missclassified_preds(dataset_mean, dataset_std, 20)
 
 
     elif isinstance(model, nn.Module):

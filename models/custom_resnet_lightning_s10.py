@@ -3,7 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from torch_lr_finder import LRFinder
-from utils import train_losses, test_losses, train_acc, test_acc, test_correct_pred, test_incorrect_pred, get_correct_pred_count
+from utils import train_losses, test_losses, train_acc, test_acc, test_correct_pred, test_incorrect_pred, \
+    get_correct_pred_count, add_predictions
+
 
 class ResnetBlock(pl.LightningModule):
     def __init__(self, input_channel, output_channel, padding=1, drop=0.01):
@@ -157,6 +159,9 @@ class S10LightningModel(pl.LightningModule):
         self.acc['val'] += get_correct_pred_count(output, target)
         self.acc['val_total'] += len(x)
 
+        if self.current_epoch == self.trainer.max_epochs - 1:
+            add_predictions(x, output, target)
+
         self.log_dict({'val_loss': loss, 'acc': 100 * self.acc['val'] / self.acc['val_total']})
 
 
@@ -193,6 +198,7 @@ class S10LightningModel(pl.LightningModule):
         print('Epoch ', self.current_epoch, ' Validation Accuracy', 100 * self.acc['val'] / self.acc['val_total'], '% [', self.acc['val'], '/', self.acc['val_total'], ']')
         self.acc['val'] = 0
         self.acc['val_total'] = 0
+
 
 
     def find_lr(self, optimizer):
