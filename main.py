@@ -27,8 +27,8 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
         model = network
 
     if isinstance(model, pl.LightningModule):
-        data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
-        data_module.prepare_data()
+        #data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
+        #data_module.prepare_data()
 
         #if show_sample:
         #    plot_dataset_sample(data_module, dataset_mean, dataset_std)
@@ -36,14 +36,13 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
         #if show_model_summary:
         #    ModelSummary(model)
 
-        if find_lr:
-            model.find_lr()
+        model.is_find_max_lr = find_lr
 
         if start_train:
             trainer = pl.Trainer(
                 max_epochs=24
             )
-            trainer.fit(model, data_module)
+            trainer.fit(model, train_loader, test_loader)
 
 
     elif isinstance(model, nn.Module):
