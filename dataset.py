@@ -99,8 +99,6 @@ class CustomCIFARR10LightningDataModule(pl.LightningDataModule):
     def __init__(self, **kwargs):
         super(CustomCIFARR10LightningDataModule, self).__init__()
         self.kwargs = kwargs
-        self.train_data = None
-        self.test_data = None
 
     def prepare_data(self):
 
