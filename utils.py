@@ -35,24 +35,20 @@ def plot_missclassified_preds(mean, std, count=20):
     MEAN = torch.tensor(mean)
     STD = torch.tensor(std)
 
-    fig = plt.figure(figsize=(count, 10))
     for i in range(count):
-        sub = fig.add_subplot(int(count / 5), 5, i + 1)
+        plt.subplot(int(count / 5), 5, i + 1)
         # plt.tight_layout()
         x = test_incorrect_pred['images'][i] * STD[:, None, None].to(device) + MEAN[:, None, None].to(device)
 
         image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
         plt.imshow(image, vmin=0, vmax=255, cmap='gray')
 
-        #plt.xticks([])
-        #plt.yticks([])
+        plt.xticks([])
+        plt.yticks([])
 
         title = get_data_label_name(test_incorrect_pred['ground_truths'][i].item()) + ' / ' + \
                 get_data_label_name(test_incorrect_pred['predicted_vals'][i].item())
-        sub.set_title(title, fontsize=8)
-
-    plt.tight_layout()
-    plt.show()
+        plt.title(title, fontsize=8)
 
 
 # code to move any list dict of tensor to the cuda/cpu

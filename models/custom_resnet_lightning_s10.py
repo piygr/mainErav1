@@ -58,17 +58,11 @@ class S10LightningModel(pl.LightningModule):
         self.criterion = loss_function
 
         self.acc = dict(train=0, val=0, train_total=0, val_total=0)
-        #self.test_correct = 0
-        #self.train_processed = 0
-        #self.test_processed = 0
 
-        '''self.train_losses = []
-        self.test_losses = []
-        self.train_acc = []
-        self.test_acc = []
-
-        self.test_incorrect_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
-        self.test_correct_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}'''
+        self.layer_list = []
+        for name, module in self.named_children():
+            if not name.startswith('params'):
+                self.layers_list.append(name)
 
 
         self.base_channels = base_channels
@@ -138,6 +132,11 @@ class S10LightningModel(pl.LightningModule):
 
         return F.log_softmax(x, dim=1)
 
+
+    def get_layer(self, idx):
+        if idx < len(self.layer_list) and idx >= 0:
+            return self.layer_list[idx]
+        return None
 
     def training_step(self, train_batch, batch_idx):
         x, target = train_batch
