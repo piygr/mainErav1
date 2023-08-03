@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torch_lr_finder import LRFinder
 
 
-class ResnetBlock(nn.Module):
+class ResnetBlock(pl.LightningModule):
     def __init__(self, input_channel, output_channel, padding=1, drop=0.01):
 
         super(ResnetBlock, self).__init__()
@@ -101,34 +101,24 @@ class S10LightningModel(pl.LightningModule):
 
     def forward(self, x):
 
-        #print(x.size())
 
         x = self.prep_layer(x)
-        #print(x.size())
 
         x = self.x1(x)
-        #print('x1', x.size())
 
         x = self.R1(x) + x
-        #print('x', x.size())
 
         x = self.layer2(x)
-        #print(x.size())
 
         x = self.x2(x)
-        #print('x2', x.size())
 
         x = self.R2(x) + x
-        #print('x', x.size())
 
         x = self.pool(x)
-        #print(x.size())
 
         x = x.view(x.size(0), 8*self.base_channels)
-        #print(x.size())
 
         x = self.fc(x)
-        #print(x.size())
 
         return F.log_softmax(x, dim=1)
 
