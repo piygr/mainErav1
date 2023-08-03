@@ -1,6 +1,8 @@
+import pytorch_lightning as pl
 import torch.optim as optim
+
 from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint
-from dataset import get_loader, dataset_mean, dataset_std
+from dataset import get_loader, dataset_mean, dataset_std, CustomCIFARR10LightningDataModule
 from models.resnet import ResNet18, nn
 from torchsummary import summary
 from torch_lr_finder import LRFinder
@@ -16,20 +18,48 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)
 
 
-def init(show_sample=True, show_model_summary=True, find_lr=False):
+def init(network=None, show_sample=True, show_model_summary=True, find_lr=False, start_train=False):
 
-    if show_sample:
-        plot_dataset_sample(train_loader, dataset_mean, dataset_std)
+    global model
 
-    if show_model_summary:
-        summary(model, input_size=(3, 32, 32))
+    if network:
+        model = network
 
-    if find_lr:
-        lr_finder = LRFinder(model, optimizer, criterion, device=device)
-        lr_finder.range_test(train_loader, end_lr=100, num_iter=100)
-        lr_finder.plot()  # to inspect the loss-learning rate graph
-        lr_finder.reset()  # to reset the model and optimizer to their initial state
+    if isinstance(model, pl.LightningModule):
+        global data_module
+        data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
 
+        if show_sample:
+            plot_dataset_sample(data_module.train_dataloader(), dataset_mean, dataset_std)
+
+        if show_model_summary:
+            summary(model, input_size=(3, 32, 32))
+
+        if find_lr:
+            model.find_lr()
+
+        if start_train:
+            trainer = pl.Trainer()
+            trainer.fit(model, data_module)
+
+
+    elif isinstance(model, nn.Module):
+
+        if show_sample:
+            plot_dataset_sample(train_loader, dataset_mean, dataset_std)
+
+        if show_model_summary:
+            summary(model, input_size=(3, 32, 32))
+
+        if find_lr:
+            lr_finder = LRFinder(model, optimizer, criterion, device=device)
+            lr_finder.range_test(train_loader, end_lr=100, num_iter=100)
+            lr_finder.plot()  # to inspect the loss-learning rate graph
+            lr_finder.reset()  # to reset the model and optimizer to their initial state
+
+
+        if start_train:
+            train_model()
 
 
 def train_model(start_epoch=1, resume=False, num_epochs=20):
