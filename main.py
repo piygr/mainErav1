@@ -49,7 +49,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
             )
             trainer.fit(model, train_dataloader, test_dataloader)
 
-            plot_missclassified_preds(dataset_mean, dataset_std, 20)
+            
 
 
     elif isinstance(model, nn.Module):
