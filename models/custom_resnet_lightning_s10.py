@@ -137,6 +137,13 @@ class S10LightningModel(pl.LightningModule):
         loss = self.criterion(logits, y)
         self.log('val_loss', loss)
 
+
+    def train_dataloader(self):
+        if not self.trainer.train_dataloader:
+            self.trainer.fit_loop.setup_data()
+
+        return self.trainer.train_dataloader
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-6, weight_decay=0.01)
         self.find_lr(optimizer)
@@ -159,7 +166,7 @@ class S10LightningModel(pl.LightningModule):
             return self.max_lr
 
         lr_finder = LRFinder(self, optimizer, self.criterion)
-        lr_finder.range_test(self.trainer.datamodule.train_dataloader(), end_lr=100, num_iter=100)
+        lr_finder.range_test(self.train_dataloader(), end_lr=100, num_iter=100)
         _, best_lr = lr_finder.plot()  # to inspect the loss-learning rate graph
         lr_finder.reset()
         self.max_lr = best_lr

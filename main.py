@@ -10,7 +10,9 @@ from torch_lr_finder import LRFinder
 
 
 model = ResNet18().to(device)
-
+batch_size = 512
+kwargs = {'batch_size': batch_size, 'shuffle': True, 'num_workers': 2, 'pin_memory': True}
+train_loader, test_loader = get_loader(**kwargs)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)
@@ -27,10 +29,10 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
         batch_size = 512
         kwargs = {'batch_size': batch_size, 'shuffle': True}
-        #train_loader, test_loader = get_loader(**kwargs)
-        data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
-        data_module.prepare_data()
-        data_module.setup('fit')
+        train_dataloader, test_dataloader = get_loader(**kwargs)
+        #data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
+        #data_module.prepare_data()
+        #data_module.setup('fit')
         #if show_sample:
         #    plot_dataset_sample(data_module, dataset_mean, dataset_std)
 
@@ -43,14 +45,10 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
             trainer = pl.Trainer(
                 max_epochs=24
             )
-            trainer.fit(model, data_module)
+            trainer.fit(model, train_dataloader, test_dataloader)
 
 
     elif isinstance(model, nn.Module):
-
-        batch_size = 512
-        kwargs = {'batch_size': batch_size, 'shuffle': True, 'num_workers': 2, 'pin_memory': True}
-        train_loader, test_loader = get_loader(**kwargs)
 
         if show_sample:
             plot_dataset_sample(train_loader, dataset_mean, dataset_std)
