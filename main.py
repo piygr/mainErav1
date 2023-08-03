@@ -28,7 +28,8 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
     if isinstance(model, pl.LightningModule):
         data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
         data_module.prepare_data()
-        
+        data_module.setup()
+
         if show_sample:
             plot_dataset_sample(data_module.train_dataloader(), dataset_mean, dataset_std)
 
