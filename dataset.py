@@ -157,3 +157,5 @@ class CustomCIFARR10LightningDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return torch.utils.data.DataLoader(self.test_data, **self.kwargs)
+
+
