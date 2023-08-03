@@ -30,6 +30,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
         batch_size = 512
         kwargs = {'batch_size': batch_size, 'shuffle': True}
         train_dataloader, test_dataloader = get_loader(**kwargs)
+
         #data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
         #data_module.prepare_data()
         #data_module.setup('fit')

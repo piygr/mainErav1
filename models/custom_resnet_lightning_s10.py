@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from torch_lr_finder import LRFinder
-
+from utils import train_losses, test_losses, train_acc, test_acc, test_correct_pred, test_incorrect_pred, get_correct_pred_count
 
 class ResnetBlock(pl.LightningModule):
     def __init__(self, input_channel, output_channel, padding=1, drop=0.01):
@@ -54,6 +54,20 @@ class S10LightningModel(pl.LightningModule):
         self.is_find_max_lr = is_find_max_lr
         self.max_lr = max_lr
         self.criterion = loss_function
+
+        self.acc = dict(train=0, val=0, train_total=0, val_total=0)
+        #self.test_correct = 0
+        #self.train_processed = 0
+        #self.test_processed = 0
+
+        '''self.train_losses = []
+        self.test_losses = []
+        self.train_acc = []
+        self.test_acc = []
+
+        self.test_incorrect_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
+        self.test_correct_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}'''
+
 
         self.base_channels = base_channels
 
@@ -124,18 +138,26 @@ class S10LightningModel(pl.LightningModule):
 
 
     def training_step(self, train_batch, batch_idx):
-        x, y = train_batch
-        logits = self.forward(x)
-        loss = self.criterion(logits, y)
-        self.log('train_loss', loss)
+        x, target = train_batch
+        output = self.forward(x)
+        loss = self.criterion(output, target)
+
+        self.acc['train'] += get_correct_pred_count(output, target)
+        self.acc['train_total'] += len(x)
+
+        self.log_dict({'train_loss': loss, 'acc': 100*self.acc['train']/self.acc['train_total']})
         return loss
 
 
     def validation_step(self, val_batch, batch_idx):
-        x, y = val_batch
-        logits = self.forward(x)
-        loss = self.criterion(logits, y)
-        self.log('val_loss', loss)
+        x, target = val_batch
+        output = self.forward(x)
+        loss = self.criterion(output, target)
+
+        self.acc['val'] += get_correct_pred_count(output, target)
+        self.acc['val_total'] += len(x)
+
+        self.log_dict({'val_loss': loss, 'acc': 100 * self.acc['val'] / self.acc['val_total']})
 
 
     def train_dataloader(self):
@@ -159,6 +181,9 @@ class S10LightningModel(pl.LightningModule):
                                                   verbose=False
                                                   )
         return [optimizer], [scheduler]
+
+
+    #def on_train_epoch_end(self):
 
 
     def find_lr(self, optimizer):
