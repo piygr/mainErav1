@@ -70,8 +70,10 @@ def move_to(obj, device):
 
 
 
-def plot_grad_cam(model, mean, std, count=20, missclassified=True):
-    target_layers = [model.layer4[-1]]
+def plot_grad_cam(model, mean, std, count=20, missclassified=True, target_layers=None):
+    if not target_layers:
+        target_layers = [model.layer4[-1]]
+
     cam = GradCAM(model=model, target_layers=target_layers, use_cuda=0)
 
     MEAN = torch.tensor(mean)
