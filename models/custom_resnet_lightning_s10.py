@@ -246,11 +246,11 @@ class S10LightningModel(pl.LightningModule):
 
     def plot_model_performance(self):
         fig, axs = plt.subplots(2, 2, figsize=(15, 10))
-        axs[0, 0].plot(np.array(self.metric['train_loss']))
+        axs[0, 0].plot( self.cpu().metric['train_loss'] )
         axs[0, 0].set_title("Training Loss")
-        axs[1, 0].plot( np.array(self.metric['train_acc']) )
+        axs[1, 0].plot( self.cpu().metric['train_acc'] )
         axs[1, 0].set_title("Training Accuracy")
-        axs[0, 1].plot( np.array(self.metric['val_loss']) )
+        axs[0, 1].plot( self.cpu().metric['val_loss'] )
         axs[0, 1].set_title("Test Loss")
-        axs[1, 1].plot(np.array(self.metric['val_acc']) )
+        axs[1, 1].plot( self.cpu().metric['val_acc'] )
         axs[1, 1].set_title("Test Accuracy")
