@@ -258,7 +258,7 @@ class S10LightningModel(pl.LightningModule):
         axs[1, 1].set_title("Test Accuracy")
 
 
-    def plot_grad_cam(self, mean, std, target_layers, get_data_label_name, count=10, missclassified=True):
+    def plot_grad_cam(self, mean, std, target_layers, get_data_label_name, count=10, missclassified=True, grad_opacity=1.0):
         cam = GradCAM(model=self, target_layers=target_layers)
 
         #fig = plt.figure()
@@ -282,10 +282,10 @@ class S10LightningModel(pl.LightningModule):
             img_tensor = np.array(x, np.float16).transpose(1, 2, 0)
 
             visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True,
-                                              image_weight=0.8)
+                                              image_weight=(1.0 - grad_opacity) )
 
-            plt.imshow(image, vmin=0, vmax=255)
-            plt.imshow(visualization, alpha=0.6, vmin=0, vmax=255)
+            #plt.imshow(image, vmin=0, vmax=255)
+            plt.imshow(visualization, vmin=0, vmax=255)
             plt.xticks([])
             plt.yticks([])
 
