@@ -9,7 +9,7 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 import matplotlib.pyplot as plt
 from torch_lr_finder import LRFinder
 import numpy as np
-from utils import get_correct_pred_count, add_predictions, test_incorrect_pred, test_correct_pred
+from utils import get_correct_pred_count, add_predictions, test_incorrect_pred, test_correct_pred, denormalize
 
 
 class ResnetBlock(pl.LightningModule):
@@ -264,8 +264,6 @@ class S10LightningModel(pl.LightningModule):
     def plot_grad_cam(self, mean, std, target_layers, get_data_label_name, count=10, missclassified=True):
         cam = GradCAM(model=self, target_layers=target_layers)
 
-        MEAN = torch.tensor(mean)
-        STD = torch.tensor(std)
         #fig = plt.figure()
         for i in range(count):
             plt.subplot(int(count / 5), 5, i + 1)
@@ -281,10 +279,10 @@ class S10LightningModel(pl.LightningModule):
 
             # grayscale_cam = grayscale_cam[0, :].transpose(1, 2, 0)
 
-            x = pred_dict['images'][i] * STD[:, None, None] + MEAN[:, None, None]
+            x = denormalize(pred_dict['images'][i].cpu(), mean, std)
 
-            image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
-            img_tensor = np.array(x.cpu(), np.float16).transpose(1, 2, 0)
+            image = np.array(255 * x, np.int16).transpose(1, 2, 0)
+            img_tensor = np.array(x, np.float16).transpose(1, 2, 0)
 
             visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True,
                                               image_weight=0.8)

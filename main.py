@@ -45,6 +45,10 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
             model.plot_model_performance()
 
             save_model(model)
+        else:
+            chk = load_model_from_checkpoint()
+            model.load_state_dict(chk['model'])
+
 
 
 

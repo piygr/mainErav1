@@ -13,16 +13,27 @@ cuda = torch.cuda.is_available()
 print("CUDA Available?", cuda)
 device = torch.device("cuda" if cuda else "cpu")
 
-def plot_dataset_sample(data_loader, mean, std):
-    batch_data, batch_label = next(iter(data_loader))
+def denormalize(img, mean, std):
     MEAN = torch.tensor(mean)
     STD = torch.tensor(std)
+
+    img = img * STD[:, None, None] + MEAN[:, None, None]
+    i_min = img.min().item()
+    i_max = img.max().item()
+
+    img_bar = (img - i_min)/(i_max - i_min)
+
+    return img_bar
+
+def plot_dataset_sample(data_loader, mean, std):
+    batch_data, batch_label = next(iter(data_loader))
+
 
     # fig = plt.figure()
     for i in range(5):
         plt.subplot(1, 5, i + 1)
         #plt.tight_layout()
-        x = batch_data[i].cpu() * STD[:, None, None] + MEAN[:, None, None]
+        x = denormalize(batch_data[i].cpu(), mean, std)
 
         image = np.array(255 * x, np.int16).transpose(1, 2, 0)
         plt.imshow(image, vmin=0, vmax=255)
@@ -32,13 +43,11 @@ def plot_dataset_sample(data_loader, mean, std):
 
 
 def plot_missclassified_preds(mean, std, count=20):
-    MEAN = torch.tensor(mean)
-    STD = torch.tensor(std)
 
     for i in range(count):
         plt.subplot(int(count / 5), 5, i + 1)
         # plt.tight_layout()
-        x = test_incorrect_pred['images'][i].cpu() * STD[:, None, None]+ MEAN[:, None, None]
+        x = denormalize(test_incorrect_pred['images'][i].cpu(), mean, std)
 
         image = np.array(255 * x, np.int16).transpose(1, 2, 0)
         plt.imshow(image, vmin=0, vmax=255, cmap='gray')
@@ -76,8 +85,6 @@ def plot_grad_cam(model, mean, std, count=20, missclassified=True, target_layers
 
     cam = GradCAM(model=model, target_layers=target_layers, use_cuda=0)
 
-    MEAN = torch.tensor(mean)
-    STD = torch.tensor(std)
     fig = plt.figure()
     for i in range(count):
         plt.subplot(int(count / 5), 5, i + 1)
@@ -93,48 +100,10 @@ def plot_grad_cam(model, mean, std, count=20, missclassified=True, target_layers
 
         # grayscale_cam = grayscale_cam[0, :].transpose(1, 2, 0)
 
-        x = pred_dict['images'][i] * STD[:, None, None].to(device) + MEAN[:, None, None].to(device)
+        x = denormalize(pred_dict['images'][i].cpu(), mean, std)
 
-        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
-        img_tensor = np.array(x.cpu(), np.float16).transpose(1, 2, 0)
-
-        visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True, image_weight=0.8)
-
-        plt.imshow(image, vmin=0, vmax=255)
-        plt.imshow(visualization, alpha=0.6, vmin=0, vmax=255)
-        plt.xticks([])
-        plt.yticks([])
-
-        title = get_data_label_name(pred_dict['ground_truths'][i].item()) + ' / ' + \
-                get_data_label_name(pred_dict['predicted_vals'][i].item())
-        plt.title(title, fontsize=8)
-
-
-def plot_grad_cam_PYLightning(model, mean, std, count=20, missclassified=True, target_layers=None):
-
-    cam = GradCAM(model=model, target_layers=target_layers)
-
-    MEAN = torch.tensor(mean)
-    STD = torch.tensor(std)
-    fig = plt.figure()
-    for i in range(count):
-        plt.subplot(int(count / 5), 5, i + 1)
-        plt.tight_layout()
-        if not missclassified:
-            pred_dict = test_correct_pred
-        else:
-            pred_dict = test_incorrect_pred
-
-        targets = [ClassifierOutputTarget(pred_dict['ground_truths'][i].item())]
-
-        grayscale_cam = cam(input_tensor=pred_dict['images'][i][None, :], targets=targets)
-
-        # grayscale_cam = grayscale_cam[0, :].transpose(1, 2, 0)
-
-        x = pred_dict['images'][i] * STD[:, None, None] + MEAN[:, None, None]
-
-        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
-        img_tensor = np.array(x.cpu(), np.float16).transpose(1, 2, 0)
+        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
+        img_tensor = np.array(x, np.float16).transpose(1, 2, 0)
 
         visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True, image_weight=0.8)
 
