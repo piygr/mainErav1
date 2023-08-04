@@ -3,7 +3,7 @@ import torch.optim as optim
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, \
-    plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint, plot_missclassified_preds, save_model
+    plot_grad_cam, load_model_from_checkpoint, plot_missclassified_preds, save_model
 from dataset import get_loader, dataset_mean, dataset_std, CustomCIFARR10LightningDataModule
 from models.resnet import ResNet18, nn
 from torchsummary import summary
