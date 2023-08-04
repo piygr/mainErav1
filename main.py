@@ -10,7 +10,7 @@ from torchsummary import summary
 from torch_lr_finder import LRFinder
 
 
-model = ResNet18().to(device)
+model = ResNet18()
 batch_size = 512
 kwargs = {'batch_size': batch_size, 'shuffle': True, 'num_workers': 2, 'pin_memory': True}
 train_loader, test_loader = get_loader(**kwargs)
@@ -50,6 +50,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
     elif isinstance(model, nn.Module):
 
+        model.to(device)
         if show_sample:
             plot_dataset_sample(train_loader, dataset_mean, dataset_std)
 
