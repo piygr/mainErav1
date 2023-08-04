@@ -42,10 +42,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
                 max_epochs=6
             )
             trainer.fit(model, train_dataloader, test_dataloader)
-            train_losses = model.metric['train_loss']
-            test_losses = model.metric['val_loss']
-            train_acc = model.metric['train_acc']
-            test_acc = model.metric['val_acc']
+            model.plot_model_performance()
 
             save_model(model)
 

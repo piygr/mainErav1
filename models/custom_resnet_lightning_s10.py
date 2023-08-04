@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from pytorch_grad_cam import GradCAM
+import matplotlib.pyplot as plt
 from torch_lr_finder import LRFinder
 from utils import train_losses, test_losses, train_acc, test_acc, test_correct_pred, test_incorrect_pred, \
     get_correct_pred_count, add_predictions
@@ -221,7 +222,7 @@ class S10LightningModel(pl.LightningModule):
             self.metric['epoch_train_loss'] = []
 
             val_acc = 100 * self.metric['val'] / self.metric['val_total']
-            print('\nValidation Accuracy: ', str(val_acc) + '%', ' [', self.metric['val'], '/', self.metric['val_total'], ']')
+            print('Validation Accuracy: ', str(val_acc) + '%', ' [', self.metric['val'], '/', self.metric['val_total'], ']\n')
 
             self.metric['val_loss'].append(sum(self.metric['epoch_val_loss']) / len(self.metric['epoch_val_loss']))
             self.metric['val_acc'].append(val_acc)
@@ -241,3 +242,15 @@ class S10LightningModel(pl.LightningModule):
         _, best_lr = lr_finder.plot()  # to inspect the loss-learning rate graph
         lr_finder.reset()
         self.max_lr = best_lr
+
+
+    def plot_model_performance(self):
+        fig, axs = plt.subplots(2, 2, figsize=(15, 10))
+        axs[0, 0].plot(self.metric['train_loss'])
+        axs[0, 0].set_title("Training Loss")
+        axs[1, 0].plot(self.metric['train_acc'])
+        axs[1, 0].set_title("Training Accuracy")
+        axs[0, 1].plot(self.metric['val_loss'])
+        axs[0, 1].set_title("Test Loss")
+        axs[1, 1].plot(self.metric['val_acc'])
+        axs[1, 1].set_title("Test Accuracy")
