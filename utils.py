@@ -22,9 +22,9 @@ def plot_dataset_sample(data_loader, mean, std):
     for i in range(5):
         plt.subplot(1, 5, i + 1)
         #plt.tight_layout()
-        x = batch_data[i] * STD[:, None, None] + MEAN[:, None, None]
+        x = batch_data[i].cpu() * STD[:, None, None] + MEAN[:, None, None]
 
-        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
+        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
         plt.imshow(image, vmin=0, vmax=255)
         plt.xticks([])
         plt.yticks([])
@@ -38,9 +38,9 @@ def plot_missclassified_preds(mean, std, count=20):
     for i in range(count):
         plt.subplot(int(count / 5), 5, i + 1)
         # plt.tight_layout()
-        x = test_incorrect_pred['images'][i] * STD[:, None, None].to(device) + MEAN[:, None, None].to(device)
+        x = test_incorrect_pred['images'][i].cpu() * STD[:, None, None]+ MEAN[:, None, None]
 
-        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
+        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
         plt.imshow(image, vmin=0, vmax=255, cmap='gray')
 
         plt.xticks([])
