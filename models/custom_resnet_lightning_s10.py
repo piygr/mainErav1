@@ -213,7 +213,7 @@ class S10LightningModel(pl.LightningModule):
             print('Train Accuracy: ', str(train_acc) + '%', ' [',
                   self.metric['train'], '/', self.metric['train_total'], ']')
 
-            self.metric['train_loss'].append( self.metric['epoch_train_loss'] / len(self.metric['epoch_train_loss']))
+            self.metric['train_loss'].append( sum(self.metric['epoch_train_loss']) / len(self.metric['epoch_train_loss']))
             self.metric['train_acc'].append(train_acc)
 
             self.metric['train'] = 0
@@ -223,7 +223,7 @@ class S10LightningModel(pl.LightningModule):
             val_acc = 100 * self.metric['val'] / self.metric['val_total']
             print('\nValidation Accuracy: ', str(val_acc) + '%', ' [', self.metric['val'], '/', self.metric['val_total'], ']')
 
-            self.metric['val_loss'].append(self.metric['epoch_val_loss'] / len(self.metric['epoch_val_loss']))
+            self.metric['val_loss'].append(sum(self.metric['epoch_val_loss']) / len(self.metric['epoch_val_loss']))
             self.metric['val_acc'].append(val_acc)
 
             self.metric['val'] = 0
