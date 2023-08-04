@@ -1,3 +1,4 @@
+import os
 import pytorch_lightning as pl
 import torch.optim as optim
 
@@ -27,8 +28,8 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
     if isinstance(model, pl.LightningModule):
 
-        batch_size = 512
-        kwargs = {'batch_size': batch_size, 'shuffle': True, 's10': True}
+        batch_size = 64
+        kwargs = {'batch_size': batch_size, 'shuffle': True, 's10': True, 'num_workers': os.cpu_count(), 'pin_memory': True}
         train_dataloader, test_dataloader = get_loader(**kwargs)
 
         if show_sample:
@@ -38,6 +39,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
         if start_train:
             trainer = pl.Trainer(
+                precision=16,
                 max_epochs=24
             )
             trainer.fit(model, train_dataloader, test_dataloader)

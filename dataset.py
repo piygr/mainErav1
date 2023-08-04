@@ -30,7 +30,7 @@ def get_loader(**kwargs):
     dataset = datasets.CIFAR10('../data', train=True, download=True, transform=transforms.ToTensor())
     mean, std = get_dataset_mean_variance(dataset)
     if kwargs.get('s10'):
-        train_data = CustomCIFAR10Dataset(train=True, transform=get_s10_train_transforms(mean, std, 0.5))
+        train_data = CustomCIFAR10Dataset(train=True, transform=get_s10_train_transforms(mean, std, 0.3))
         del kwargs['s10']
     else:
         train_data = CustomCIFAR10Dataset(train=True, transform=get_train_transforms(mean, std, 0.5))

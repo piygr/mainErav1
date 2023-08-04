@@ -181,6 +181,9 @@ class S10LightningModel(pl.LightningModule):
         self.log_dict({'val_loss': loss, 'val_acc': acc})
 
 
+    def test_step(self, test_batch, batch_idx):
+        self.validation_step(test_batch, batch_idx)
+
     def train_dataloader(self):
         if not self.trainer.train_dataloader:
             self.trainer.fit_loop.setup_data()
@@ -237,7 +240,7 @@ class S10LightningModel(pl.LightningModule):
 
     def find_lr(self, optimizer):
         if not self.is_find_max_lr:
-            return self.max_lr
+            return
 
         lr_finder = LRFinder(self, optimizer, self.criterion)
         lr_finder.range_test(self.train_dataloader(), end_lr=100, num_iter=100)
