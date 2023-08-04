@@ -143,7 +143,7 @@ class S10LightningModel(pl.LightningModule):
 
 
     def get_layer(self, idx):
-        layers = [self.prep_layer, self.x1, self.R1, self.layer2, self.x2, self.R2, self.pool]
+        layers = [self.prep_layer, self.x1, self.layer2, self.x2, self.pool]
 
         if idx < len(layers) and idx >= 0:
             return layers[idx]
@@ -195,7 +195,7 @@ class S10LightningModel(pl.LightningModule):
                                                   max_lr=self.max_lr,
                                                   epochs=self.trainer.max_epochs,
                                                   total_steps=self.trainer.estimated_stepping_batches,
-                                                  pct_start=1 / self.trainer.max_epochs,
+                                                  pct_start=5 / self.trainer.max_epochs,
                                                   div_factor=100,
                                                   final_div_factor=100,
                                                   three_phase=False,
@@ -204,33 +204,30 @@ class S10LightningModel(pl.LightningModule):
         return [optimizer], [scheduler]
 
 
-    '''def on_train_epoch_end(self):
-       print('Epoch ', self.current_epoch, ' Train Accuracy', 100*self.metric['train']/self.metric['train_total'], '% [', self.metric['train'], '/', self.metric['train_total'], ']')
-       self.metric['train'] = 0
-       self.metric['train_total'] = 0'''
-
-
     def on_validation_epoch_end(self):
         if self.metric['train_total']:
             print('Epoch ', self.current_epoch)
             train_acc = 100 * self.metric['train'] / self.metric['train_total']
-            print('Train Accuracy: ', str(train_acc) + '%', ' [',
-                  self.metric['train'], '/', self.metric['train_total'], ']')
-
             epoch_loss = sum(self.metric['epoch_train_loss']) / len(self.metric['epoch_train_loss'])
             self.metric['train_loss'].append( epoch_loss.item() )
             self.metric['train_acc'].append(train_acc)
+
+
+            print('Train Loss: ', epoch_loss.item(), ' Accuracy: ', str(train_acc) + '%', ' [',
+                  self.metric['train'], '/', self.metric['train_total'], ']')
 
             self.metric['train'] = 0
             self.metric['train_total'] = 0
             self.metric['epoch_train_loss'] = []
 
             val_acc = 100 * self.metric['val'] / self.metric['val_total']
-            print('Validation Accuracy: ', str(val_acc) + '%', ' [', self.metric['val'], '/', self.metric['val_total'], ']\n')
 
             epoch_loss = sum(self.metric['epoch_val_loss']) / len(self.metric['epoch_val_loss'])
             self.metric['val_loss'].append( epoch_loss.item() )
             self.metric['val_acc'].append(val_acc)
+
+            print('Validation Loss: ', epoch_loss.item(), ' Accuracy: ', str(val_acc) + '%', ' [', self.metric['val'],
+                  '/', self.metric['val_total'], ']\n')
 
             self.metric['val'] = 0
             self.metric['val_total'] = 0
