@@ -3,7 +3,7 @@ import torch.optim as optim
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 from utils import torch, cuda, device, plot_dataset_sample, test, train, plot_model_performance, test_acc, \
-    plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint, plot_missclassified_preds
+    plot_grad_cam, load_model_from_checkpoint, create_model_checkpoint, plot_missclassified_preds, save_model
 from dataset import get_loader, dataset_mean, dataset_std, CustomCIFARR10LightningDataModule
 from models.resnet import ResNet18, nn
 from torchsummary import summary
@@ -32,14 +32,8 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
         kwargs = {'batch_size': batch_size, 'shuffle': True}
         train_dataloader, test_dataloader = get_loader(**kwargs)
 
-        #data_module = CustomCIFARR10LightningDataModule(**dict(batch_size=512, shuffle=True))
-        #data_module.prepare_data()
-        #data_module.setup('fit')
-        #if show_sample:
-        #    plot_dataset_sample(data_module, dataset_mean, dataset_std)
-
-        #if show_model_summary:
-        #    ModelSummary(model)
+        if show_sample:
+            plot_dataset_sample(train_dataloader, dataset_mean, dataset_std)
 
         model.is_find_max_lr = find_lr
 
@@ -48,6 +42,12 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
                 max_epochs=6
             )
             trainer.fit(model, train_dataloader, test_dataloader)
+            train_losses = model.metric['train_loss']
+            test_losses = model.metric['val_loss']
+            train_acc = model.metric['train_acc']
+            test_acc = model.metric['val_acc']
+
+            save_model(model)
 
 
 

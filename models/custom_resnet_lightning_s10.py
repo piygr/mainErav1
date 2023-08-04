@@ -58,7 +58,16 @@ class S10LightningModel(pl.LightningModule):
         self.max_lr = max_lr
         self.criterion = loss_function
 
-        self.acc = dict(train=0, val=0, train_total=0, val_total=0)
+        self.metric = dict(train=0,
+                        val=0,
+                        train_total=0,
+                        val_total=0,
+                        epoch_train_loss=[],
+                        epoch_val_loss=[],
+                        train_loss=[],
+                        val_loss=[],
+                        train_acc=[],
+                        val_acc=[])
 
 
         self.base_channels = base_channels
@@ -141,10 +150,13 @@ class S10LightningModel(pl.LightningModule):
         output = self.forward(x)
         loss = self.criterion(output, target)
 
-        self.acc['train'] += get_correct_pred_count(output, target)
-        self.acc['train_total'] += len(x)
+        self.metric['train'] += get_correct_pred_count(output, target)
+        self.metric['train_total'] += len(x)
+        self.metric['epoach_train_loss'].append(loss)
 
-        self.log_dict({'train_loss': loss, 'acc': 100*self.acc['train']/self.acc['train_total']})
+        acc = 100 * self.metric['train'] / self.metric['train_total']
+
+        self.log_dict({'train_loss': loss, 'train_acc': acc})
         return loss
 
 
@@ -153,13 +165,16 @@ class S10LightningModel(pl.LightningModule):
         output = self.forward(x)
         loss = self.criterion(output, target)
 
-        self.acc['val'] += get_correct_pred_count(output, target)
-        self.acc['val_total'] += len(x)
+        self.metric['val'] += get_correct_pred_count(output, target)
+        self.metric['val_total'] += len(x)
+        self.metric['epoch_val_loss'].append(loss)
+
+        acc = 100 * self.metric['val'] / self.metric['val_total']
 
         if self.current_epoch == self.trainer.max_epochs - 1:
             add_predictions(x, output, target)
 
-        self.log_dict({'val_loss': loss, 'acc': 100 * self.acc['val'] / self.acc['val_total']})
+        self.log_dict({'val_loss': loss, 'val_acc': acc})
 
 
     def train_dataloader(self):
@@ -186,22 +201,34 @@ class S10LightningModel(pl.LightningModule):
 
 
     '''def on_train_epoch_end(self):
-       print('Epoch ', self.current_epoch, ' Train Accuracy', 100*self.acc['train']/self.acc['train_total'], '% [', self.acc['train'], '/', self.acc['train_total'], ']')
-       self.acc['train'] = 0
-       self.acc['train_total'] = 0'''
+       print('Epoch ', self.current_epoch, ' Train Accuracy', 100*self.metric['train']/self.metric['train_total'], '% [', self.metric['train'], '/', self.metric['train_total'], ']')
+       self.metric['train'] = 0
+       self.metric['train_total'] = 0'''
 
 
     def on_validation_epoch_end(self):
-        if self.acc['train_total']:
+        if self.metric['train_total']:
             print('Epoch ', self.current_epoch)
-            print('Train Accuracy', 100 * self.acc['train'] / self.acc['train_total'], '% [',
-                  self.acc['train'], '/', self.acc['train_total'], ']')
-            self.acc['train'] = 0
-            self.acc['train_total'] = 0
+            train_acc = 100 * self.metric['train'] / self.metric['train_total']
+            print('Train Accuracy: ', str(train_acc) + '%', ' [',
+                  self.metric['train'], '/', self.metric['train_total'], ']')
 
-            print('Validation Accuracy', 100 * self.acc['val'] / self.acc['val_total'], '% [', self.acc['val'], '/', self.acc['val_total'], ']')
-            self.acc['val'] = 0
-            self.acc['val_total'] = 0
+            self.metric['train_loss'].append( self.metric['epoch_train_loss'] / len(self.metric['epoch_train_loss']))
+            self.metric['train_acc'].append(train_acc)
+
+            self.metric['train'] = 0
+            self.metric['train_total'] = 0
+            self.metric['epoch_train_loss'] = []
+
+            val_acc = 100 * self.metric['val'] / self.metric['val_total']
+            print('\nValidation Accuracy: ', str(val_acc) + '%', ' [', self.metric['val'], '/', self.metric['val_total'], ']')
+
+            self.metric['val_loss'].append(self.metric['epoch_val_loss'] / len(self.metric['epoch_val_loss']))
+            self.metric['val_acc'].append(val_acc)
+
+            self.metric['val'] = 0
+            self.metric['val_total'] = 0
+            self.metric['epoch_val_loss'] = []
 
 
 

@@ -250,7 +250,7 @@ def plot_model_performance():
     axs[1, 1].set_title("Test Accuracy")
 
 
-def create_model_checkpoint(model, optimizer, scheduler, epoch):
+def create_full_model_checkpoint(model, optimizer, scheduler, epoch):
     print('Saving..')
     state = {
         'model': model.state_dict(),
@@ -275,15 +275,24 @@ def create_model_checkpoint(model, optimizer, scheduler, epoch):
     torch.save(state, './checkpoint/ckpt.pth')
 
 
+def save_model(model):
+    print('Saving..')
+    state = dict(model= model.state_dict())
+    if not os.path.isdir('checkpoint'):
+        os.mkdir('checkpoint')
+
+    torch.save(state, './checkpoint/ckpt_light.pth')
+
+
 def load_model_from_checkpoint():
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
     checkpoint = torch.load('./checkpoint/ckpt.pth')
-    train_losses = checkpoint['train_losses']
-    test_losses = checkpoint['test_losses']
-    train_acc = checkpoint['train_acc']
-    test_acc = checkpoint['test_acc']
-    test_incorrect_pred = checkpoint['test_incorrect_pred']
-    test_correct_pred = checkpoint['test_correct_pred']
+    train_losses = checkpoint.get('train_losses', [])
+    test_losses = checkpoint.get('test_losses', [])
+    train_acc = checkpoint.get('train_acc',[])
+    test_acc = checkpoint.get('test_acc',[])
+    test_incorrect_pred = checkpoint.get('test_incorrect_pred', dict(images=[], ground_truths=[], predicted_vals=[]))
+    test_correct_pred = checkpoint.get('test_correct_pred',  dict(images=[], ground_truths=[], predicted_vals=[]))
 
     return checkpoint
