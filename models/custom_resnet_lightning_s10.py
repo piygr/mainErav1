@@ -195,7 +195,7 @@ class S10LightningModel(pl.LightningModule):
                                                   max_lr=self.max_lr,
                                                   epochs=self.trainer.max_epochs,
                                                   total_steps=self.trainer.estimated_stepping_batches,
-                                                  pct_start=1 / self.trainer.max_epochs,
+                                                  pct_start=5 / self.trainer.max_epochs,
                                                   div_factor=100,
                                                   final_div_factor=100,
                                                   three_phase=False,
@@ -274,8 +274,6 @@ class S10LightningModel(pl.LightningModule):
 
             grayscale_cam = cam(input_tensor=pred_dict['images'][i][None, :].cpu(), targets=targets)
 
-            # grayscale_cam = grayscale_cam[0, :].transpose(1, 2, 0)
-
             x = denormalize(pred_dict['images'][i].cpu(), mean, std)
 
             image = np.array(255 * x, np.int16).transpose(1, 2, 0)
@@ -284,8 +282,8 @@ class S10LightningModel(pl.LightningModule):
             visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True,
                                               image_weight=(1.0 - grad_opacity) )
 
-            #plt.imshow(image, vmin=0, vmax=255)
-            plt.imshow(visualization, vmin=0, vmax=255)
+            plt.imshow(image, vmin=0, vmax=255)
+            plt.imshow(visualization, vmin=0, vmax=255, alpha=grad_opacity)
             plt.xticks([])
             plt.yticks([])
 
