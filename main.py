@@ -39,7 +39,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
         if start_train:
             trainer = pl.Trainer(
-                max_epochs=1
+                max_epochs=4
             )
             trainer.fit(model, train_dataloader, test_dataloader)
             model.plot_model_performance()
