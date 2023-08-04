@@ -192,7 +192,7 @@ class S10LightningModel(pl.LightningModule):
                                                   max_lr=self.max_lr,
                                                   epochs=self.trainer.max_epochs,
                                                   total_steps=self.trainer.estimated_stepping_batches,
-                                                  pct_start=5 / self.trainer.max_epochs,
+                                                  pct_start=1 / self.trainer.max_epochs,
                                                   div_factor=100,
                                                   final_div_factor=100,
                                                   three_phase=False,

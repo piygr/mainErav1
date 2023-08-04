@@ -24,7 +24,7 @@ def plot_dataset_sample(data_loader, mean, std):
         #plt.tight_layout()
         x = batch_data[i] * STD[:, None, None] + MEAN[:, None, None]
 
-        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
+        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
         plt.imshow(image, vmin=0, vmax=255)
         plt.xticks([])
         plt.yticks([])
@@ -133,8 +133,8 @@ def plot_grad_cam_PYLightning(model, mean, std, count=20, missclassified=True, t
 
         x = pred_dict['images'][i] * STD[:, None, None] + MEAN[:, None, None]
 
-        image = np.array(255 * x, np.int16).transpose(1, 2, 0)
-        img_tensor = np.array(x, np.float16).transpose(1, 2, 0)
+        image = np.array(255 * x.cpu(), np.int16).transpose(1, 2, 0)
+        img_tensor = np.array(x.cpu(), np.float16).transpose(1, 2, 0)
 
         visualization = show_cam_on_image(img_tensor, grayscale_cam.transpose(1, 2, 0), use_rgb=True, image_weight=0.8)
 
