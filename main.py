@@ -28,7 +28,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
     if isinstance(model, pl.LightningModule):
 
         batch_size = 512
-        kwargs = {'batch_size': batch_size, 'shuffle': True}
+        kwargs = {'batch_size': batch_size, 'shuffle': True, 's10': True}
         train_dataloader, test_dataloader = get_loader(**kwargs)
 
         if show_sample:

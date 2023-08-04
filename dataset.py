@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
-from transforms import get_test_transforms, get_train_transforms
+from transforms import get_test_transforms, get_train_transforms, get_s10_train_transforms
 import numpy as np
 import pytorch_lightning as pl
 
@@ -29,7 +29,11 @@ def get_loader(**kwargs):
 
     dataset = datasets.CIFAR10('../data', train=True, download=True, transform=transforms.ToTensor())
     mean, std = get_dataset_mean_variance(dataset)
-    train_data = CustomCIFAR10Dataset(train=True, transform=get_train_transforms(mean, std, 0.5))
+    if kwargs.get('s10'):
+        train_data = CustomCIFAR10Dataset(train=True, transform=get_s10_train_transforms(mean, std, 0.5))
+        del kwargs['s10']
+    else:
+        train_data = CustomCIFAR10Dataset(train=True, transform=get_train_transforms(mean, std, 0.5))
     test_data = CustomCIFAR10Dataset(train=False, transform=get_test_transforms(mean=mean, std=std))
 
     return torch.utils.data.DataLoader(train_data, **kwargs), torch.utils.data.DataLoader(test_data, **kwargs)
