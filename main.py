@@ -18,7 +18,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)
 
 
-def init(network=None, show_sample=True, show_model_summary=True, find_lr=False, start_train=False):
+def init(network=None, show_sample=True, show_model_summary=True, find_lr=False, start_train=False, resume=False):
 
     global model
 
@@ -41,10 +41,10 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
                 max_epochs=24
             )
             trainer.fit(model, train_dataloader, test_dataloader)
-            model.plot_model_performance()
 
             save_model(model)
-        else:
+
+        if resume:
             chk = load_model_from_checkpoint()
             model.load_state_dict(chk['model'])
 
@@ -68,7 +68,7 @@ def init(network=None, show_sample=True, show_model_summary=True, find_lr=False,
 
 
         if start_train:
-            train_model()
+            train_model(resume=resume)
 
 
 def train_model(start_epoch=1, resume=False, num_epochs=20):
