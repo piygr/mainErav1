@@ -152,7 +152,7 @@ class S10LightningModel(pl.LightningModule):
 
         self.metric['train'] += get_correct_pred_count(output, target)
         self.metric['train_total'] += len(x)
-        self.metric['epoach_train_loss'].append(loss)
+        self.metric['epoch_train_loss'].append(loss)
 
         acc = 100 * self.metric['train'] / self.metric['train_total']
 
