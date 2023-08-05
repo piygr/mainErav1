@@ -55,7 +55,7 @@ def plot_missclassified_preds(mean, std, count=20):
         plt.xticks([])
         plt.yticks([])
 
-        title = get_data_label_name(test_incorrect_pred['ground_truths'][i].item()) + ' / ' + \
+        title = '✅' + get_data_label_name(test_incorrect_pred['ground_truths'][i].item()) + ' / ❌' + \
                 get_data_label_name(test_incorrect_pred['predicted_vals'][i].item())
         plt.title(title, fontsize=8)
 
