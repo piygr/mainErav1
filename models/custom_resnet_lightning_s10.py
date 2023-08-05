@@ -11,22 +11,31 @@ from torch_lr_finder import LRFinder
 import numpy as np
 from utils import get_correct_pred_count, add_predictions, test_incorrect_pred, test_correct_pred, denormalize
 
-
-class ResnetBlock(pl.LightningModule):
-    def __init__(self, input_channel, output_channel, padding=1, drop=0.01):
+NO_GROUPS = 4
+class ResnetBlock(nn.Module):
+    def __init__(self, input_channel, output_channel, padding=1, norm='bn', drop=0.01):
 
         super(ResnetBlock, self).__init__()
 
         self.conv1 = nn.Conv2d(input_channel, output_channel, 3, padding=padding)
 
-        self.n1 = nn.BatchNorm2d(output_channel)
-
+        if norm == 'bn':
+            self.n1 = nn.BatchNorm2d(output_channel)
+        elif norm == 'gn':
+            self.n1 = nn.GroupNorm(NO_GROUPS, output_channel)
+        elif norm == 'ln':
+            self.n1 = nn.GroupNorm(1, output_channel)
 
         self.drop1 = nn.Dropout2d(drop)
 
         self.conv2 = nn.Conv2d(output_channel, output_channel, 3, padding=padding)
 
-        self.n2 = nn.BatchNorm2d(output_channel)
+        if norm == 'bn':
+            self.n2 = nn.BatchNorm2d(output_channel)
+        elif norm == 'gn':
+            self.n2 = nn.GroupNorm(NO_GROUPS, output_channel)
+        elif norm == 'ln':
+            self.n2 = nn.GroupNorm(1, output_channel)
 
         self.drop2 = nn.Dropout2d(drop)
 
@@ -73,7 +82,6 @@ class S10LightningModel(pl.LightningModule):
                         train_acc=[],
                         val_acc=[])
 
-
         self.base_channels = base_channels
 
         self.prep_layer = nn.Sequential(
@@ -83,61 +91,71 @@ class S10LightningModel(pl.LightningModule):
             nn.Dropout2d(drop)
         )
 
-        #layer1
+        # layer1
         self.x1 = nn.Sequential(
-            nn.Conv2d(base_channels, 2*base_channels, 3, stride=1, padding=1),
+            nn.Conv2d(base_channels, 2 * base_channels, 3, stride=1, padding=1),
             nn.MaxPool2d(2, 2),
-            nn.BatchNorm2d(2*base_channels),
+            nn.BatchNorm2d(2 * base_channels),
             nn.ReLU(),
             nn.Dropout2d(drop)
         )
 
-        self.R1 = ResnetBlock(2*base_channels, 2*base_channels, padding=1, drop=drop)
+        self.R1 = ResnetBlock(2 * base_channels, 2 * base_channels, padding=1, drop=drop)
 
-        #layer2
+        # layer2
         self.layer2 = nn.Sequential(
-            nn.Conv2d(2*base_channels, 4*base_channels, 3, stride=1, padding=1),
+            nn.Conv2d(2 * base_channels, 4 * base_channels, 3, stride=1, padding=1),
             nn.MaxPool2d(2, 2),
-            nn.BatchNorm2d(4*base_channels),
+            nn.BatchNorm2d(4 * base_channels),
             nn.ReLU(),
             nn.Dropout2d(drop)
         )
 
-        #layer3
+        # layer3
         self.x2 = nn.Sequential(
-            nn.Conv2d(4*base_channels, 8*base_channels, 3, stride=1, padding=1),
+            nn.Conv2d(4 * base_channels, 8 * base_channels, 3, stride=1, padding=1),
             nn.MaxPool2d(2, 2),
-            nn.BatchNorm2d(8*base_channels),
+            nn.BatchNorm2d(8 * base_channels),
             nn.ReLU(),
             nn.Dropout2d(drop)
         )
 
-        self.R2 = ResnetBlock(8*base_channels, 8*base_channels, padding=1, drop=drop)
+        self.R2 = ResnetBlock(8 * base_channels, 8 * base_channels, padding=1, drop=drop)
 
         self.pool = nn.MaxPool2d(4)
 
-        self.fc = nn.Linear(8*base_channels, 10)
+        self.fc = nn.Linear(8 * base_channels, 10)
 
     def forward(self, x):
 
+        # print(x.size())
 
         x = self.prep_layer(x)
+        # print(x.size())
 
         x = self.x1(x)
+        # print('x1', x.size())
 
         x = self.R1(x) + x
+        # print('x', x.size())
 
         x = self.layer2(x)
+        # print(x.size())
 
         x = self.x2(x)
+        # print('x2', x.size())
 
         x = self.R2(x) + x
+        # print('x', x.size())
 
         x = self.pool(x)
+        # print(x.size())
 
-        x = x.view(x.size(0), 8*self.base_channels)
+        x = x.view(x.size(0), 8 * self.base_channels)
+        # print(x.size())
 
         x = self.fc(x)
+        # print(x.size())
 
         return F.log_softmax(x, dim=1)
 
