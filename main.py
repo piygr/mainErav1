@@ -10,13 +10,13 @@ from torchsummary import summary
 from torch_lr_finder import LRFinder
 
 
-model = ResNet18()
+'''model = ResNet18()
 batch_size = 512
 kwargs = {'batch_size': batch_size, 'shuffle': True, 'num_workers': 2, 'pin_memory': True}
 train_loader, test_loader = get_loader(**kwargs)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)
+optimizer = optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)'''
 
 
 def init(network=None, show_sample=True, show_model_summary=True, find_lr=False, start_train=False, resume=False):

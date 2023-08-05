@@ -211,7 +211,7 @@ class S10LightningModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-6, weight_decay=0.01)
         self.find_lr(optimizer)
-
+        print(self.max_lr)
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
                                                   max_lr=self.max_lr,
                                                   epochs=self.trainer.max_epochs,
