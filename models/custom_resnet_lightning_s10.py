@@ -222,7 +222,14 @@ class S10LightningModel(pl.LightningModule):
                                                   three_phase=False,
                                                   verbose=False
                                                   )
-        return [optimizer], [scheduler]
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                'interval': 'step', # or 'epoch'
+                'frequency': 1
+            },
+        }
 
 
     def on_validation_epoch_end(self):
